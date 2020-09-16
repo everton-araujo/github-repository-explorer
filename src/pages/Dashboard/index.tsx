@@ -1,4 +1,4 @@
-import React, { useState, FormEvent } from 'react';
+import React, { useState, useEffect, FormEvent } from 'react';
 import { FiChevronRight } from 'react-icons/fi';
 import api from '../../services/api';
 
@@ -18,9 +18,21 @@ interface Repository {
 }
 
 const Dashboard: React.FC = () => {
+    const storageRepositories = localStorage.getItem('@GithubExplorer:repositories');
+
     const [newRepo, setNewRepo] = useState('');
-    const [repositories, setRepositories] = useState<Repository[]>([]);
+    const [repositories, setRepositories] = useState<Repository[]>(() => {
+        if (storageRepositories) {
+            return JSON.parse(storageRepositories);
+        }
+
+        return [];
+    });
     const [inputError, setInputError] = useState('');
+
+    useEffect(() => {
+        localStorage.setItem('@GithubExplorer:repositories', JSON.stringify(repositories));
+    }, [repositories]);
 
     //     Adição de um novo repositório
     //     Consumir API do Github
@@ -30,6 +42,11 @@ const Dashboard: React.FC = () => {
 
         if (!newRepo) {
             setInputError('Digite o autor/nome-do-repositório');
+            return;
+        }
+
+        if (storageRepositories?.includes(newRepo) && newRepo.replace(/\s/g, '').length > 0) {
+            setInputError('Repositório já adicionado');
             return;
         }
 
